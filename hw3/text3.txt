@@ -1,0 +1,51 @@
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
+#include <stdio.h>     
+#include <stdlib.h>    
+#include <time.h>     
+using namespace cv;
+using namespace std;
+
+
+
+
+Mat gray;
+Mat img2;
+float filter[5][5] = {
+	{1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0},
+	{1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0},
+	{1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0},
+	{1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0},
+	{1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0,1.0 / 25.0}
+};
+
+int boyut = 5;
+double toplam = 0;
+int main(){
+
+	Mat img = imread("lena.png", 1);
+
+	cvtColor(img, gray, COLOR_BGR2GRAY);
+	imshow("grayimg", gray);
+	Mat Grayresim(gray.cols, gray.cols, CV_8UC1, Scalar(0));
+	for (int y = 0; y < img.rows -boyut; y++) {
+		for (int x = 0 ; x < img.cols -boyut; x++){
+			for (int t = 0; t < boyut; t++) {
+				for (int f = 0; f < boyut; f++) {
+					toplam = toplam + gray.at<uchar>(y + t, x + f)* filter[f][t];
+					
+				}
+			}
+			
+			Grayresim.at<uchar>(y, x) = toplam;
+			toplam = 0;
+			
+			
+		}
+	}
+
+	imshow("sonuc", Grayresim);
+	waitKey(0);
+	return 0;
+}
