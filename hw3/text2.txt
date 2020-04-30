@@ -1,0 +1,92 @@
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
+#include <stdio.h>     
+#include <stdlib.h>    
+#include <time.h>     
+using namespace cv;
+using namespace std;
+
+double pdf[255];
+double cdfL[255];
+double pmf[255];
+double cdf[255];
+
+
+Mat img2;
+float n;
+double sayi = 0;
+Mat img3;
+int d = 0;
+
+void equ(Mat img2, float sayi) {
+	int n = img2.rows * img2.cols;
+	int min;
+	int max;
+	/////////////pdf
+	for (int i = 0; i < img2.cols; i++) {
+		for (int j = 0; j < img2.rows; j++) {
+			pdf[img2.at<uchar>(j, i)]++;
+
+		}
+	}
+
+
+	/////////////Prob mass
+	for (int i = 0; i < 256; i++) {
+		if (pdf[i] > 0) {
+			pmf[i] = pdf[i] / n;
+		}
+		else pmf[i] = 0;
+	}
+
+	///////////cumulatife
+	for (int i = 0; i < 256; i++) {
+		if (i == 0)cdf[0] = 0;
+		else {
+			cdf[i] = cdf[(i - 1)] + pmf[i];
+		
+		}
+	}
+	for (int i = 0; i < 256; i++) {
+		if (cdf[i] > 0 && d == 0) {
+			min = i;
+			d = 1;
+		}
+		if (pdf[i] > 0) {
+			max = i;
+		}
+	}
+	int o = max - min;
+		cout << "min-max:" << o << endl;
+	
+	///////// cdf *(level -1)
+	for (int j = 0; j < 256; j++) {
+		if (j > min && j < max) {
+			cdfL[j] = floor(cdf[j] * 254);
+		}
+		}
+	////////map
+	for (int i = 0; i < img2.cols; i++) {
+		for (int j = 0; j < img2.rows; j++) {
+			for (int k = 1; k < 256; k++) {
+				if (img2.at<uchar>(j, i) == k)
+					img2.at<uchar>(j, i) = cdfL[k];
+			}
+		}
+	}
+	imshow("son", img2);
+
+}
+
+
+int main(){
+	Mat img = imread("low.png", 1);
+	
+	cvtColor(img, img2, COLOR_BGR2GRAY);
+	imshow("gray", img2);
+	equ(img2,sayi);
+	waitKey(0);
+	return 0;
+}
+
