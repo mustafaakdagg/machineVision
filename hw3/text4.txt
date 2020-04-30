@@ -1,0 +1,85 @@
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
+#include <stdio.h>     
+#include <stdlib.h>    
+#include <time.h>     
+using namespace cv;
+using namespace std;
+#define PI 3.14159265
+
+double maxi =0;
+double pdf[256];
+Mat gray;
+Mat img2;
+float angle;
+int filter[3][3] = {
+	{-1,0,1},
+	{-2,0,2},
+	{-1,0,1}
+};
+int filter2[3][3] = {
+	{-1,-2,-1},
+	{0,0,0},
+	{1,2,1}	
+};
+double magX=0;
+double magY=1;
+int boyut = 3;
+double toplam = 0;
+double toplam1 = 0;
+double toplam2 = 0;
+void functionn(Mat Grayresim,Mat img) {
+	for (int y = 0; y < img.rows - boyut; y++) {
+		for (int x = 0; x < img.cols - boyut; x++) {
+			for (int t = 0; t < boyut; t++) {
+				for (int f = 0; f < boyut; f++) {
+					toplam1 = toplam1 + gray.at<uchar>(y + t, x + f) * filter[f][t];
+					toplam2 = toplam2 + gray.at<uchar>(y + t, x + f) * filter2[f][t];
+				}
+			}
+			magX = sqrt(toplam1 * toplam1 + toplam2 * toplam2);
+
+			
+			if (x == y) {
+			angle = atan2(toplam2, toplam1) * 180 / PI;
+			cout << "angle between:( " << y << "," << x << " ) is = " << angle << " degree." << endl;
+			}
+			
+			Grayresim.at<uchar>(y, x) = magX;
+			toplam1 = 0;
+			toplam2 = 0;
+
+		}
+	}
+	for (int i = 0; i < img2.cols; i++) {
+		for (int j = 0; j < img2.rows; j++) {
+			pdf[Grayresim.at<uchar>(j, i)]++;
+
+		}
+	}
+	for (int i = 1; i < 256; i++) {
+		if (pdf[i] > pdf[i - 1]) {
+			maxi = i;
+		}
+	}
+	if (magX > maxi)magX = 255;
+	if (magX <= maxi)magX = 0;
+
+}
+
+
+int main(){
+
+	Mat img = imread("lena.png", 1);
+
+	cvtColor(img, gray, COLOR_BGR2GRAY);
+	imshow("grayimg", gray);
+	Mat Grayresim(gray.cols, gray.cols, CV_8UC1, Scalar(0));
+	functionn(Grayresim, img);
+	imshow("sonuc", Grayresim);
+
+	waitKey(0);
+	return 0;
+}
+
